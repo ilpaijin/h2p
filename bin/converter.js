@@ -108,7 +108,7 @@ page.open(options.request.uri + (options.request.method == 'GET' ? '?' + options
 
 page.onError = function(msg, trace) {
 
-    var msgStack = ['[ERROR]' + msg + "[/ERROR]"];
+    var msgStack = ['[ERROR]' + msg + " in " + page.url + "[/ERROR]"];
 
     if (trace && trace.length) 
     {
