@@ -268,7 +268,7 @@ class PhantomJS extends ConverterAbstract
      * @return bool
      * @throws \H2P\Exception
      */
-    protected function transform(Request $origin, $destination)
+    protected function transform(Request $origin, $destination, $keepFileWithErrors)
     {
         $request = self::fixRequestKeyNames($origin);
 
@@ -276,12 +276,15 @@ class PhantomJS extends ConverterAbstract
             'destination' => $destination,
             'request' => $request,
         ) + $this->options;
-
+var_dump(shell_exec($this->getBinPath() . ' ' . escapeshellarg(json_encode($args))));
         $result = json_decode(trim(shell_exec($this->getBinPath() . ' ' . escapeshellarg(json_encode($args)))));
 
-        var_dump($result);
-
         if (!$result->success) {
+            
+            if(!$keepFileWithErrors) {
+                unlink($destination);
+            }
+
             throw new Exception('Error while executing PhantomJS: "' . $result->response . '"');
         }
 

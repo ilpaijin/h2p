@@ -44,11 +44,15 @@ var options = JSON.parse(args[1]);
 page.customHeaders = options.request.headers;
 phantom.cookies = options.request.cookies;
 
+page.onInitialized = function() {
+    // console.info(page);
+}
+
 page.open(options.request.uri + (options.request.method == 'GET' ? '?' + options.request.params : ''), options.request.method, options.request.params, function (status) {
 
-    // if (status !== 'success') {
-    //     throw 'Unable to access the URI! (Make sure you\'re using a .html extension if you\'re trying to use a local file)';
-    // }
+    if (status !== 'success') {
+        throw 'Unable to access the URI! (Make sure you\'re using a .html extension if you\'re trying to use a local file)';
+    }
 
     var paperSize = {
         format: options.format,

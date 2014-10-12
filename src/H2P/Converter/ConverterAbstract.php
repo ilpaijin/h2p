@@ -118,7 +118,7 @@ abstract class ConverterAbstract
      * @param string|\H2P\TempFile $destination
      * @throws \H2P\Exception
      */
-    public function convert($origin, $destination)
+    public function convert($origin, $destination, $keepFileWithErrors = true)
     {
         if (!$origin instanceof Request) {
             if ($origin instanceof TempFile) {
@@ -135,7 +135,7 @@ abstract class ConverterAbstract
             $destination = $destination->getFileName();
         }
 
-        $this->transform($request, $this->guessDestinationPath($destination));
+        $this->transform($request, $this->guessDestinationPath($destination), $keepFileWithErrors);
     }
 
     /**
@@ -162,5 +162,5 @@ abstract class ConverterAbstract
      * @return bool
      * @throws \H2P\Exception
      */
-    abstract protected function transform(Request $origin, $destination);
+    abstract protected function transform(Request $origin, $destination, $keepFileWithErrors);
 }
