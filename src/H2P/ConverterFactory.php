@@ -45,7 +45,7 @@ class ConverterFactory
     public static function factory($adapter)
     {
         if (empty($adapter['converter'])) {
-            throw new Exception('Adapter array must contain an converter key!');
+            throw new Exception('Adapter array must contain a converter key!');
         }
 
         $class = 'H2P\\Converter\\' . $adapter['converter'];
