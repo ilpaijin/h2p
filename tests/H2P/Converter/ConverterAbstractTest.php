@@ -32,4 +32,13 @@ class ConverterAbstractTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('H2P\\Exception', 'The destination file is not writable!');
         $stub->convert($origin, 'http://www.google.com');
     }
+
+    public function testDestinationPathIsRelative()
+    {
+        $stub = $this->getMockForAbstractClass('H2P\\Converter\\ConverterAbstract');
+
+        $dest = __DIR__."/../../samples/example.pdf";
+
+        $this->assertEquals($dest, $stub->guessDestinationPath($dest));
+    }
 }

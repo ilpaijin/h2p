@@ -38,4 +38,4 @@ use H2P\Converter\PhantomJS;
 $converter = new PhantomJS(["search_paths" => "/usr/bin/phantomjs"]);
 
 // Convert destination accepts TempFile or string with the path to save the file
-$converter->convert('http://www.google.com/', 'google.pdf');
+$converter->convert('http://www.yieldr.com/', 'yieldr.pdf');
