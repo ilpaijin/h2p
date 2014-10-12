@@ -49,7 +49,7 @@ abstract class ConverterAbstract
      * Samples dir, relative to the caller script
      * @var string
      */
-    protected $relativePdfsPath = "./pdfs";
+    protected $relativePdfsPath = "./pdfs/";
 
     /**
      * Set an option
@@ -135,10 +135,6 @@ abstract class ConverterAbstract
             $destination = $destination->getFileName();
         }
 
-        if (!@fopen($destination, 'a')) {
-            throw new Exception('The destination file is not writable!');
-        }
-
         $this->transform($request, $this->guessDestinationPath($destination));
     }
 
@@ -149,7 +145,13 @@ abstract class ConverterAbstract
      */
     public function guessDestinationPath($filepath)
     {
-        return (strpos($filepath, "/") !== FALSE) ? $filepath : $this->relativePdfsPath . $filepath ;
+        $destinationPath = (strpos($filepath, "/") !== FALSE) ? $filepath : $this->relativePdfsPath . $filepath ;
+
+        if (!@fopen($destinationPath, 'a')) {
+            throw new Exception('The destination file is not writable!');
+        }
+
+        return $destinationPath;
     }
 
     /**
