@@ -33,98 +33,104 @@
 var page = require('webpage').create();
 var args = require('system').args;
 
-function errorHandler(e) {
+
+if (args.length < 2) {
+    throw 'You must pass the URI and the Destination param!';
+}
+
+// Take all options in one JSON param
+var options = JSON.parse(args[1]);
+
+page.customHeaders = options.request.headers;
+phantom.cookies = options.request.cookies;
+
+page.open(options.request.uri + (options.request.method == 'GET' ? '?' + options.request.params : ''), options.request.method, options.request.params, function (status) {
+
+    // if (status !== 'success') {
+    //     throw 'Unable to access the URI! (Make sure you\'re using a .html extension if you\'re trying to use a local file)';
+    // }
+
+    var paperSize = {
+        format: options.format,
+        orientation: options.orientation,
+        border: options.border
+    };
+
+    // If we enable custom footer per page, evaluate it
+    if (options.allowParseCustomFooter || options.allowParseCustomHeader) {
+        var customOptions = page.evaluate(function() {
+            return (typeof _h2p_options == "object"
+                && (typeof _h2p_options.footer == "object" || typeof _h2p_options.header == "object"))
+                ? _h2p_options : {};
+        });
+    }
+
+    if (options.allowParseCustomFooter && customOptions.footer) {
+        options.footer = options.footer || { height: '1cm', content: '' }; // Avoid some errors
+        options.footer = {
+            height: customOptions.footer.height || options.footer.height,
+            content: customOptions.footer.content || options.footer.content
+        }
+    }
+
+    if (options.allowParseCustomHeader && customOptions.header) {
+        options.header = options.header || { height: '1cm', content: '' }; // Avoid some errors
+        options.header = {
+            height: customOptions.header.height || options.header.height,
+            content: customOptions.header.content || options.header.content
+        }
+    }
+
+    if (options.footer) {
+        paperSize.footer = {
+            height: options.footer.height,
+            contents: phantom.callback(function(pageNum, totalPages) {
+                return options.footer.content.replace('{{pageNum}}', pageNum).replace('{{totalPages}}', totalPages);
+            })
+        }
+    }
+
+    if (options.header) {
+        paperSize.header = {
+            height: options.header.height,
+            contents: phantom.callback(function(pageNum, totalPages) {
+                return options.header.content.replace('{{pageNum}}', pageNum).replace('{{totalPages}}', totalPages);
+            })
+        }
+    }
+    
+    page.paperSize = paperSize;
+    page.zoomFactor = options.zoomFactor;
+    page.render(options.destination, { format: 'pdf' });
+
+    returnConsoleMsg("success", true);    
+});
+
+page.onError = function(msg, trace) {
+
+    var msgStack = ['[ERROR]' + msg + "[/ERROR]"];
+
+    if (trace && trace.length) 
+    {
+        msgStack.push('[TRACE]');
+        trace.forEach(function(t) 
+        {
+            msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
+        });
+        msgStack.push('[/TRACE]');
+    }
+
+    returnConsoleMsg(msgStack.join('\n'), false);
+};
+
+
+function returnConsoleMsg(msg, result) 
+{
     console.log(JSON.stringify({
-        success: false,
-        response: e.toString()
+        success: result,
+        response: msg
     }));
 
     // Stop the script
     phantom.exit(0);
-}
-
-try {
-    if (args.length < 2) {
-        throw 'You must pass the URI and the Destination param!';
-    }
-
-    // Take all options in one JSON param
-    var options = JSON.parse(args[1]);
-
-    page.customHeaders = options.request.headers;
-    phantom.cookies = options.request.cookies;
-
-    page.open(options.request.uri + (options.request.method == 'GET' ? '?' + options.request.params : ''), options.request.method, options.request.params, function (status) {
-        try {
-            if (status !== 'success') {
-                throw 'Unable to access the URI! (Make sure you\'re using a .html extension if you\'re trying to use a local file)';
-            }
-
-            var paperSize = {
-                format: options.format,
-                orientation: options.orientation,
-                border: options.border
-            };
-
-            // If we enable custom footer per page, evaluate it
-            if (options.allowParseCustomFooter || options.allowParseCustomHeader) {
-                var customOptions = page.evaluate(function() {
-                    return (typeof _h2p_options == "object"
-                        && (typeof _h2p_options.footer == "object" || typeof _h2p_options.header == "object"))
-                        ? _h2p_options : {};
-                });
-            }
-
-            if (options.allowParseCustomFooter && customOptions.footer) {
-                options.footer = options.footer || { height: '1cm', content: '' }; // Avoid some errors
-                options.footer = {
-                    height: customOptions.footer.height || options.footer.height,
-                    content: customOptions.footer.content || options.footer.content
-                }
-            }
-
-            if (options.allowParseCustomHeader && customOptions.header) {
-                options.header = options.header || { height: '1cm', content: '' }; // Avoid some errors
-                options.header = {
-                    height: customOptions.header.height || options.header.height,
-                    content: customOptions.header.content || options.header.content
-                }
-            }
-
-            if (options.footer) {
-                paperSize.footer = {
-                    height: options.footer.height,
-                    contents: phantom.callback(function(pageNum, totalPages) {
-                        return options.footer.content.replace('{{pageNum}}', pageNum).replace('{{totalPages}}', totalPages);
-                    })
-                }
-            }
-
-            if (options.header) {
-                paperSize.header = {
-                    height: options.header.height,
-                    contents: phantom.callback(function(pageNum, totalPages) {
-                        return options.header.content.replace('{{pageNum}}', pageNum).replace('{{totalPages}}', totalPages);
-                    })
-                }
-            }
-
-            page.paperSize = paperSize;
-            page.zoomFactor = options.zoomFactor;
-            page.render(options.destination, { format: 'pdf' });
-
-            console.log(JSON.stringify({
-                success: true,
-                response: null
-            }));
-
-            // Stop the script
-            phantom.exit(0);
-
-        } catch (e) {
-            errorHandler(e);
-        }
-    });
-} catch (e) {
-    errorHandler(e);
 }

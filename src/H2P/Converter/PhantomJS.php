@@ -279,6 +279,8 @@ class PhantomJS extends ConverterAbstract
 
         $result = json_decode(trim(shell_exec($this->getBinPath() . ' ' . escapeshellarg(json_encode($args)))));
 
+        var_dump($result);
+
         if (!$result->success) {
             throw new Exception('Error while executing PhantomJS: "' . $result->response . '"');
         }
