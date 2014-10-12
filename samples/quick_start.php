@@ -35,7 +35,7 @@ include '../autoloader.php';
 
 use H2P\Converter\PhantomJS;
 
-$converter = new PhantomJS();
+$converter = new PhantomJS(["search_paths" => "/usr/bin/phantomjs"]);
 
 // Convert destination accepts TempFile or string with the path to save the file
-$converter->convert('http://www.google.com/', '/home/user/Documents/page.pdf');
+$converter->convert('http://www.google.com/', 'google.pdf');
